@@ -1,0 +1,169 @@
+import tkinter as tk
+from tkinter import IntVar, END, DISABLED, NORMAL
+from playsound import playsound
+from PIL import ImageTk, Image
+
+root = tk.Tk()
+root.title('MORSE CODE TRANSLATOR')
+root.geometry('800x650')
+root.resizable(0,0)
+
+button_font = ("comicsansms", 20)
+root_color = "black"
+frame_color = "white"
+button_color = "white"
+text_color = "beige"
+root.config(bg=root_color)
+
+
+def convert():
+    #English to morse code:
+    if language.get() == 1:
+        get_morse()
+    elif language.get() == 2:
+        get_english()
+
+
+def get_morse():
+    """Convert an English message to morse code"""
+    morse_code = ""
+    text = input_text.get("1.0", END)
+    text = text.lower()
+
+    for letter in text:
+        if letter not in english_to_morse.keys():
+            text = text.replace(letter, '')
+
+    word_list = text.split(" ")
+    for word in word_list:
+        letters = list(word)
+        for letter in letters:
+            morse_char = english_to_morse[letter]
+            morse_code += morse_char
+            
+            morse_code += " "
+        morse_code += "|"
+
+    output_text.insert("1.0", morse_code)
+
+
+def get_english():
+    """Convert a morse code message to english"""
+    english = ""
+    text = input_text.get("1.0", END)
+
+    for letter in text:
+        if letter not in morse_to_english.keys():
+            text = text.replace(letter, '')
+
+    word_list = text.split("|")
+    for word in word_list:
+       letters= word.split(" ")
+    for letter in letters:
+            english_char = morse_to_english[letter]
+            english += english_char
+    
+            english += " "
+
+    output_text.insert("1.0", english)
+
+def play():
+    '''Play sound'''
+    if language.get() == 1:
+        text = output_text.get("1.0", END)
+    elif language.get() == 2:
+        text = input_text.get("1.0", END)
+
+    for value in text:
+        if value == ".":
+            playsound('/Users/mamtachoudhary077/Documents/untitled folder 2/3rd/p project/dot.mp3')
+            root.after(50)
+        elif value == "-":
+            playsound('/Users/mamtachoudhary077/Documents/untitled folder 2/3rd/p project/dash.mp3')
+            root.after(150)
+        elif value == " ":
+            root.after(150)
+        elif value == "|":
+            root.after(300)
+
+    
+def clear():
+    """Clear both text fields"""
+    input_text.delete("1.0", END)
+    output_text.delete("1.0", END)
+    
+def leave():
+    '''for leaving the window'''
+    root.destroy()
+
+
+def show_guide():
+   #making image morse global to put on window
+   #making window guide global to close it in another function
+    global morse
+    global guide
+
+    guide = tk.Toplevel()
+    guide.title("Morse Guide")
+    guide.geometry('800x650+'+ str(root.winfo_x()+700) + "+" + str(root.winfo_y()))
+    guide.config(bg="black")
+
+    morse=ImageTk.PhotoImage(file="/Users/mamtachoudhary077/Documents/untitled folder 2/3rd/p project/Morse-Code-Bracelets-Code-Chart.png")
+    label = tk.Label(guide, image=morse,height=500,width=500, relief="groove", borderwidth=10)
+    label.pack()
+
+    close_button = tk.Button(guide, text="Close", font=button_font, bg=button_color,borderwidth=3,relief="sunken", command=hide_guide)
+    close_button.pack(padx=10, ipadx=50)
+
+    guide_button.config(state=DISABLED)
+
+
+def hide_guide():
+    guide_button.config(state=NORMAL)
+    guide.destroy()
+
+
+english_to_morse = {'a': '.-', 'b': '-...', 'c': '-.-.', 'd': '-..',
+            'e': '.', 'f': '..-.', 'g': '--.', 'h': '....', 
+            'i': '..', 'j': '.---', 'k': '-.-', 'l': '.-..',
+            'm': '--', 'n': '-.', 'o': '---', 'p': '.--.', 
+            'q': '--.-', 'r': '.-.', 's': '...', 't': '-', 
+            'u': '..--', 'v': '...-', 'w': '.--', 'x': '-..-', 
+            'y': '-.--', 'z': '--..', '1': '.----',
+            '2': '..---', '3': '...--', '4': '....-', '5': '.....',
+            '6': '-....', '7':  '--...', '8': '---..', '9': '----.', 
+            '0': '-----', ' ':' ', '|':'|', "":"" }
+
+morse_to_english = dict([(value, key) for (key, value) in english_to_morse.items()])
+
+
+input_frame = tk.LabelFrame(root, bg="white",borderwidth=15,relief="sunken")
+input_frame.pack(padx=40, pady=(30,20))
+input_text = tk.Text(input_frame, height=8, width=26, bg=text_color,font="comicsansms 26")
+input_text.grid(row=0, column=1, rowspan=3, padx=5, pady=5)
+
+language = IntVar()
+language.set(1)
+morse_button = tk.Radiobutton(input_frame, text="English --> Morse Code", variable=language, value=1, font=button_font, bg=button_color)
+english_button = tk.Radiobutton(input_frame, text="Morse Code --> English", variable=language, value=2, font=button_font, bg=button_color)
+guide_button = tk.Button(input_frame, text="Guide", font=button_font, bg="grey", command=show_guide)
+morse_button.grid(row=0, column=0, pady=(15,0))
+english_button.grid(row=1, column=0)
+guide_button.grid(row=2, column=0, sticky="WE", padx=10)
+
+
+output_frame = tk.LabelFrame(root, bg="white",borderwidth=15,relief="sunken")
+output_frame.pack(padx=40, pady=(30,20))
+output_text = tk.Text(output_frame, height=6, width=26, bg=text_color,font="comicsansms 26")
+output_text.grid(row=0, column=1, rowspan=8, padx=5, pady=5)
+
+convert_button = tk.Button(output_frame, text="Convert", font=button_font, bg=button_color, command=convert,borderwidth=3)
+play_button = tk.Button(output_frame, text="Morse Sound", font=button_font, bg=button_color, command=play,borderwidth=3)
+clear_button = tk.Button(output_frame, text="Clear", font=button_font, bg=button_color, command=clear,borderwidth=3)
+leave_button = tk.Button(output_frame, text="Leave", font=button_font, bg=button_color, command=leave,borderwidth=3)
+convert_button.grid(row=0, column=0, padx=10, ipadx=50)
+play_button.grid(row=1, column=0, padx=10, sticky="WE")                
+clear_button.grid(row=2, column=0, padx=10, sticky="WE")
+leave_button.grid(row=3, column=0, padx=10, sticky="WE")
+
+root.mainloop()
